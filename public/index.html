@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Webpage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        input, button {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add User</h1>
+    <form id="addForm">
+        <input type="text" id="name" placeholder="Name" required>
+        <input type="text" id="father_name" placeholder="Father's Name" required>
+        <input type="text" id="contact_number" placeholder="Contact Number" required>
+        <input type="text" id="location" placeholder="Location" required>
+        <button type="submit">Add User</button>
+    </form>
+
+    <h1>Search User</h1>
+    <input type="text" id="searchName" placeholder="Enter Name">
+    <button onclick="searchUser()">Search</button>
+
+    <h2>Search Results</h2>
+    <ul id="results"></ul>
+
+    <script>
+        // Add User
+        document.getElementById('addForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const data = {
+                name: document.getElementById('name').value,
+                father_name: document.getElementById('father_name').value,
+                contact_number: document.getElementById('contact_number').value,
+                location: document.getElementById('location').value
+            };
+
+            fetch('/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('User added successfully!');
+                document.getElementById('addForm').reset();
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        // Search User
+        function searchUser() {
+            const name = document.getElementById('searchName').value;
+            fetch(`/search?name=${name}`)
+                .then(response => response.json())
+                .then(data => {
+                    const results = document.getElementById('results');
+                    results.innerHTML = '';
+                    data.forEach(user => {
+                        const li = document.createElement('li');
+                        li.textContent = `Name: ${user.name}, Father's Name: ${user.father_name}, Contact: ${user.contact_number}, Location: ${user.location}`;
+                        results.appendChild(li);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
