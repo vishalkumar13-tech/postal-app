@@ -5,13 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Database Webpage</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        input, button {
-            margin: 5px;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        input, button { margin: 5px; }
+        .selected-users { margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -31,7 +27,12 @@
     <h2>Search Results</h2>
     <ul id="results"></ul>
 
+    <h2>Selected Users</h2>
+    <ul id="selectedUsers"></ul>
+
     <script>
+        let selectedUsers = []; // Array to store selected users
+
         // Add User
         document.getElementById('addForm').addEventListener('submit', function(event) {
             event.preventDefault();
@@ -65,11 +66,76 @@
                     results.innerHTML = '';
                     data.forEach(user => {
                         const li = document.createElement('li');
-                        li.textContent = `Name: ${user.name}, Father's Name: ${user.father_name}, Contact: ${user.contact_number}, Location: ${user.location}`;
+                        li.innerHTML = `
+                            Name: ${user.name}, 
+                            Father's Name: ${user.father_name}, 
+                            Contact: ${user.contact_number}, 
+                            Location: ${user.location}
+                            <button onclick="selectUser(${user.id}, '${user.name}', '${user.father_name}', '${user.contact_number}', '${user.location}')">Select</button>
+                            <button onclick="updateUser(${user.id})">Update</button>
+                            <button onclick="deleteUser(${user.id})">Delete</button>
+                        `;
                         results.appendChild(li);
                     });
                 })
                 .catch(error => console.error('Error:', error));
+        }
+
+        // Select User
+        function selectUser(id, name, father_name, contact_number, location) {
+            const user = { id, name, father_name, contact_number, location };
+            if (!selectedUsers.some(u => u.id === id)) {
+                selectedUsers.push(user);
+                renderSelectedUsers();
+            }
+        }
+
+        // Render Selected Users
+        function renderSelectedUsers() {
+            const selectedUsersList = document.getElementById('selectedUsers');
+            selectedUsersList.innerHTML = '';
+            selectedUsers.forEach(user => {
+                const li = document.createElement('li');
+                li.textContent = `Name: ${user.name}, Father's Name: ${user.father_name}, Contact: ${user.contact_number}, Location: ${user.location}`;
+                selectedUsersList.appendChild(li);
+            });
+        }
+
+        // Update User
+        function updateUser(id) {
+            const name = prompt('Enter new name:');
+            const father_name = prompt('Enter new father\'s name:');
+            const contact_number = prompt('Enter new contact number:');
+            const location = prompt('Enter new location:');
+
+            if (name && father_name && contact_number && location) {
+                fetch(`/update/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, father_name, contact_number, location })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    searchUser(); // Refresh search results
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // Delete User
+        function deleteUser(id) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                fetch(`/delete/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    searchUser(); // Refresh search results
+                })
+                .catch(error => console.error('Error:', error));
+            }
         }
     </script>
 </body>

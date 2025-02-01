@@ -56,7 +56,34 @@ app.get('/search', (req, res) => {
         res.json(rows);
     });
 });
+// Route to update user details
+app.put('/update/:id', (req, res) => {
+    const userId = req.params.id;
+    const { name, father_name, contact_number, location } = req.body;
+    const query = `
+        UPDATE users 
+        SET name = ?, father_name = ?, contact_number = ?, location = ?
+        WHERE id = ?
+    `;
+    db.run(query, [name, father_name, contact_number, location, userId], function(err) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'User updated successfully!' });
+    });
+});
 
+// Route to delete a user
+app.delete('/delete/:id', (req, res) => {
+    const userId = req.params.id;
+    const query = `DELETE FROM users WHERE id = ?`;
+    db.run(query, [userId], function(err) {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'User deleted successfully!' });
+    });
+});
 // Start the server
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
